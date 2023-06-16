@@ -12,13 +12,14 @@ from torchvision.models import resnet50
 from models import *
 import os
 
-@serve.deployment
+@serve.deployment(route_prefix="/")
 class ImageModel:
     def __init__(self):
         self.model = ResNet50()
         print('==> Resuming from checkpoint..')
         assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/ckpt.pth')
+        self.model = torch.nn.DataParallel(self.model)
+        checkpoint = torch.load('./checkpoint/ckpt.pth', map_location=torch.device('cpu'))
         self.model.load_state_dict(checkpoint['net'])
         self.model.eval()
 
